@@ -1,10 +1,11 @@
 import java.io.BufferedReader
 import java.io.FileReader
 import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 
-data class Specimen(val irn: String, val collection: String, val collectedDay: Int, val collected_month: Int,
-                    val collected_year: Int, val dec_lat: Float,  val dec_long: Float)
+data class Specimen(val irn: String, val collection: String, val collected_day: Int, val collected_month: Int,
+                    val collected_year: Int, val dec_lat: Double,  val dec_long: Double, val lat_precision: Int,
+                    val long_precision: Int)
 
 fun main(args: Array<String>?) {
     var fileReader: BufferedReader? = null
@@ -13,7 +14,7 @@ fun main(args: Array<String>?) {
         val specimens = ArrayList<Specimen>()
         var line: String?
 
-        fileReader = BufferedReader(FileReader("src/specimens.csv"))
+        fileReader = BufferedReader(FileReader("src/portal_data_subset.csv"))
 
         // Read CSV header
         fileReader.readLine()
@@ -22,17 +23,19 @@ fun main(args: Array<String>?) {
         line = fileReader.readLine()
         while (line != null) {
             val tokens = line.split(",")
-            if (tokens.size > 0) {
-                val customer = Specimen(
+            if (tokens.isNotEmpty()) {
+                val specimen = Specimen(
                         tokens[0],
                         tokens[1],
                         tokens[2].toInt(),
                         tokens[3].toInt(),
                         tokens[4].toInt(),
-                        tokens[5].toFloat(),
-                        tokens[6].toFloat()
+                        tokens[5].toDouble(),
+                        tokens[6].toDouble(),
+                        tokens[7].toInt(),
+                        tokens[8].toInt()
                         )
-                specimens.add(customer)
+                specimens.add(specimen)
             }
 
             line = fileReader.readLine()
