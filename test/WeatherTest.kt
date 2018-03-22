@@ -25,4 +25,10 @@ class WeatherTest {
         val expected = 4770704
         assertEquals(expected, weather.specimens[0].irn)
     }
+
+    @Test
+    fun testReadKey() {
+        val expected = "cd"
+        assertEquals(expected, weather.readKey().substring(0,2))
+    }
 }
