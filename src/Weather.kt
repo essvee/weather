@@ -1,44 +1,14 @@
 import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.FileReader
+import java.io.FileWriter
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class Weather (source: String) {
-    val specimens: ArrayList<ArrayList<String>> = arrayListOf<ArrayList<String>>()
-    private val csvHeader = "irn,collection_code,collected_year,collected_month,collected_day," +
-            "decimal_latitude,decimal_longitude,lat_precision,long_precision,date,SiteId,Latitude,Longitude," +
-            "Day,Month,Year,MinSurfaceTemperatureCelsius,MaxSurfaceTemperatureCelsius,AvgSurfaceTemperatureCelsius," +
-            "MinSurfaceDewpointTemperatureCelsius,MaxSurfaceDewpointTemperatureCelsius," +
-            "AvgSurfaceDewpointTemperatureCelsius,MinSurfaceWetBulbTemperatureCelsius," +
-            "MaxSurfaceWetBulbTemperatureCelsius,AvgSurfaceWetBulbTemperatureCelsius," +
-            "MinRelativeHumidityPercent,MaxRelativeHumidityPercent,AvgRelativeHumidityPercent," +
-            "MinSurfaceAirPressureKilopascals,MaxSurfaceAirPressureKilopascals,AvgSurfaceAirPressureKilopascals," +
-            "MinCloudCoveragePercent,MaxCloudCoveragePercent,AvgCloudCoveragePercent,MinWindChillTemperatureCelsius," +
-            "MaxWindChillTemperatureCelsius,AvgWindChillTemperatureCelsius,MinApparentTemperatureCelsius," +
-            "MaxApparentTemperatureCelsius,AvgApparentTemperatureCelsius,MinWindSpeedKph,MaxWindSpeedKph," +
-            "AvgWindSpeedKph,MinWindDirectionDegrees,MaxWindDirectionDegrees,AvgWindDirectionDegrees," +
-            "MinPrecipitationPreviousHourCentimeters,MaxPrecipitationPreviousHourCentimeters," +
-            "AvgPrecipitationPreviousHourCentimeters,SumPrecipitationPreviousHourCentimeters," +
-            "MinDownwardSolarRadiationWsqm,MaxDownwardSolarRadiationWsqm,AvgDownwardSolarRadiationWsqm," +
-            "SumDownwardSolarRadiationWsqm,MinDiffuseHorizontalRadiationWsqm,MaxDiffuseHorizontalRadiationWsqm," +
-            "AvgDiffuseHorizontalRadiationWsqm,SumDiffuseHorizontalRadiationWsqm,MinDirectNormalIrradianceWsqm," +
-            "MaxDirectNormalIrradianceWsqm,AvgDirectNormalIrradianceWsqm,SumDirectNormalIrradianceWsqm," +
-            "MinMslPressureKilopascals,MaxMslPressureKilopascals,AvgMslPressureKilopascals,MinHeatIndexCelsius," +
-            "MaxHeatIndexCelsius,AvgHeatIndexCelsius,MinSnowfallCentimeters,MaxSnowfallCentimeters," +
-            "AvgSnowfallCentimeters,SumSnowfallCentimeters,MinSurfaceWindGustsKph,MaxSurfaceWindGustsKph," +
-            "AvgSurfaceWindGustsKph,MinPotentialEvapotranspirationMicrometersPerHour," +
-            "MaxPotentialEvapotranspirationMicrometersPerHour,AvgPotentialEvapotranspirationMicrometersPerHour," +
-            "MinSurfaceWaterRunOffMillimeters,MaxSurfaceWaterRunOffMillimeters,AvgSurfaceWaterRunOffMillimeters," +
-            "SumSurfaceWaterRunOffMillimeters,MinTenToFortyLiquidSoilMoisturePercent," +
-            "MaxTenToFortyLiquidSoilMoisturePercent,AvgTenToFortyLiquidSoilMoisturePercent," +
-            "MinTenToFortySoilTemperatureCelsius,MaxTenToFortySoilTemperatureCelsius," +
-            "AvgTenToFortySoilTemperatureCelsius,MinZeroToTenLiquidSoilMoisturePercent," +
-            "MaxZeroToTenLiquidSoilMoisturePercent,AvgZeroToTenLiquidSoilMoisturePercent," +
-            "MinZeroToTenSoilTemperatureCelsius,MaxZeroToTenSoilTemperatureCelsius,AvgZeroToTenSoilTemperatureCelsius," +
-            "MinFortyToOneHundredLiquidSoilMoisturePercent,MaxFortyToOneHundredLiquidSoilMoisturePercent," +
-            "AvgFortyToOneHundredLiquidSoilMoisturePercent,MinFortyToOneHundredSoilTemperatureCelsius," +
-            "MaxFortyToOneHundredSoilTemperatureCelsius,AvgFortyToOneHundredSoilTemperatureCelsius"
+    val specimens: ArrayList<ArrayList<String>> = arrayListOf()
+    lateinit var csvHeader: String
     lateinit var key: String
 
     init {
@@ -48,8 +18,9 @@ class Weather (source: String) {
             val fileReader = BufferedReader(FileReader(source))
 
             fileReader.use {
-                // Read header
-                fileReader.readLine()
+                // Stash headers for later use
+                csvHeader = fileReader.readLine()
+
                 // Read the file line by line starting from the second line
                 fileReader.forEachLine {
 
@@ -57,7 +28,7 @@ class Weather (source: String) {
                     val startDate: LocalDate = LocalDate.parse(tokens[9], DateTimeFormatter.ofPattern("dd/MM/uuuu"))
                     val endDate:LocalDate = startDate.plusDays(1)
 
-                    // Use read values to create specimen record and add to list
+                    // Create specimen record and add to list
                     if (!tokens.isEmpty()) {
                         val specimenRecord = arrayListOf(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4],
                                 tokens[5], tokens[6], tokens[7],tokens[8], tokens[9])
@@ -77,6 +48,26 @@ class Weather (source: String) {
             }
         } catch (e: Exception) {
             println("Reading CSV Error!")
+            e.printStackTrace()
+        }
+        writeOut()
+    }
+
+    fun writeOut() {
+        try {
+            val fileWriter = BufferedWriter(FileWriter("out.csv"))
+
+            fileWriter.use {
+                fileWriter.append(csvHeader)
+                fileWriter.append("\n")
+
+                for (s in specimens) {
+                    fileWriter.append(s.joinToString())
+                    fileWriter.append("\t")
+                }
+            }
+        } catch (e: Exception) {
+            println("Writing CSV error!")
             e.printStackTrace()
         }
     }
